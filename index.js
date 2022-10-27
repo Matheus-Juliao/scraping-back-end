@@ -1,0 +1,187 @@
+//Import library
+const  express  = require('express');
+const cors =  require('cors');
+const puppeteer = require('puppeteer');
+const app = express();
+
+//Config port
+const port = process.env.PORT || 3000;
+
+//Config library
+app.use(express.json());
+app.use(cors());
+app.listen(port, ()=>console.log("API rodando..."));
+
+
+//End Point
+app.post('/brand', async function(req, res) {
+    let model = req.body
+    let models = await searchModel(model);
+
+    return res.send(models);
+})
+
+app.post('/modelyear', async function(req, res) {
+    let modelYear = req.body
+    let modelsYears = await searchModelYear(modelYear);
+
+    return res.send(modelsYears);
+})
+
+app.post('/fipe', async function(req, res) {
+    let payload = req.body
+    let results = await fipe(payload);
+
+    return res.send(results);
+})
+
+
+//Functions
+const searchModel = async (model) => {
+
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('https://veiculos.fipe.org.br/#carro');
+    await page.select('#selectMarcacarro', model.brand); //model.brand
+
+    const models = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
+            const label = resp.textContent.split('|')[0].trim();
+            const value = resp.value.split('|')[0].trim();
+        
+            return { "Label": `${label}`, "Value": `${value}`};
+        });
+    });
+    
+    //Delete first item array
+    models.shift();
+
+    const years = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#selectAnocarro option')].map(resp => { 
+            const label = resp.textContent.split('|')[0].trim();
+            const value = resp.value.split('|')[0].trim();
+        
+            return { "Label": `${label}`, "Value": `${value}`};
+        });
+    });
+
+    years.shift();
+
+    await browser.close();
+
+    return { "models": models, "years": years };
+}
+
+const searchModelYear = async (modelsYears) => {
+
+    console.log(modelsYears)
+
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('https://veiculos.fipe.org.br/#carro');
+
+    if(modelsYears.cod == 1) {
+        await page.select('#selectMarcacarro', modelsYears.brand); 
+        await page.select('#selectAnoModelocarro', modelsYears.model);
+    }
+    if(modelsYears.cod == 2) {
+        await page.select('#selectMarcacarro', modelsYears.brand); 
+        await page.select('#selectAnocarro', modelsYears.year);
+    }
+
+    const models = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
+            const label = resp.textContent.split('|')[0].trim();
+            const value = resp.value.split('|')[0].trim();
+        
+            return { "Label": `${label}`, "Value": `${value}`};
+        });
+    });
+    
+    //Delete first item array
+    models.shift();
+
+    const years = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#selectAnocarro option')].map(resp => { 
+            const label = resp.textContent.split('|')[0].trim();
+            const value = resp.value.split('|')[0].trim();
+        
+            return { "Label": `${label}`, "Value": `${value}`};
+        });
+    });
+
+    years.shift();
+
+    await browser.close();
+
+    return { "models": models, "years": years };
+}
+
+const json = { 
+    mesdereferencia: "",
+    codigoFipe: "",
+    marca: "",
+    modelo: "",
+    anoModelo: "",
+    autenticacao: "",
+    dataDaConsulta: "",
+    precoMedio: ""
+}
+
+const fipe = async (payload) => {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('https://veiculos.fipe.org.br/');
+    await page.click('.ilustra a');
+    await page.select('.open .inside-search select', '288');
+    await page.select('#selectMarcacarro', payload.brand);
+    await page.select('#selectAnoModelocarro', payload.model);
+    await page.select('#selectAnocarro', payload.year);
+    await page.click('#buttonPesquisarcarro');
+
+    const results = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#resultadoConsultacarroFiltros table tbody td p')].map((resp) => { 
+            const value = resp.textContent.split('|')[0].trim();
+        
+            return { "value": `${ value }` };
+        });
+    });
+
+    const result = tofixedJason(results);
+
+    await browser.close();
+
+    return result;
+}
+
+const tofixedJason = async (results) => {
+    console.log(results)
+    for(let i=0; i<16; i++) {
+        if(i == 1) {
+            json.mesdereferencia = results[i].value;
+        }
+        if(i == 3) {
+            json.codigoFipe = results[i].value;
+        }
+        if(i == 5) {
+            json.marca = results[i].value;
+        }
+        if(i == 7) {
+            json.modelo = results[i].value;
+        }
+        if(i == 9) {
+            json.anoModelo = results[i].value;
+        }
+        if(i == 11) {
+            json.autenticacao = results[i].value;
+        }
+        if(i == 13) {
+            json.dataDaConsulta = results[i].value;
+        }
+        if(i == 15) {
+            json.precoMedio = results[i].value;
+        }
+    }
+
+    return json;
+}
