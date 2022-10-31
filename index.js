@@ -51,8 +51,6 @@ app.post('/fipe', async function(req, res) {
         i++
     }
 
-    console.log(results)
-
     return res.send(results);
 })
 
