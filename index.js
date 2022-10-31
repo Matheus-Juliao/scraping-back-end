@@ -30,7 +30,28 @@ app.post('/modelyear', async function(req, res) {
 
 app.post('/fipe', async function(req, res) {
     let payload = req.body
-    let results = await fipe(payload);
+    let results = []
+    let i = 0
+
+    for(let period of payload.period) {
+        let resp = await fipe(payload, period);
+
+        let result = new Object();
+
+        result.mesdereferencia = resp.mesdereferencia
+        result.codigoFipe = resp.codigoFipe
+        result.marca = resp.marca
+        result.modelo = resp.modelo
+        result.anoModelo = resp.anoModelo
+        result.autenticacao = resp.autenticacao
+        result.dataDaConsulta = resp.dataDaConsulta
+        result.precoMedio = resp.precoMedio
+
+        results.push(result)
+        i++
+    }
+
+    console.log(results)
 
     return res.send(results);
 })
@@ -73,9 +94,6 @@ const searchModel = async (model) => {
 }
 
 const searchModelYear = async (modelsYears) => {
-
-    console.log(modelsYears)
-
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/#carro');
@@ -128,58 +146,70 @@ const json = {
     precoMedio: ""
 }
 
-const fipe = async (payload) => {
+const fipe = async (payload, period) => {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/');
     await page.click('.ilustra a');
-    await page.select('.open .inside-search select', '288');
+    await page.select('.open .inside-search select', period);
     await page.select('#selectMarcacarro', payload.brand);
     await page.select('#selectAnoModelocarro', payload.model);
     await page.select('#selectAnocarro', payload.year);
     await page.click('#buttonPesquisarcarro');
 
     const results = await page.evaluate(resp => {
-        return [...document.querySelectorAll('#resultadoConsultacarroFiltros table tbody td p')].map((resp) => { 
+         return [...document.querySelectorAll('#resultadoConsultacarroFiltros table tbody td p')].map((resp) => { 
             const value = resp.textContent.split('|')[0].trim();
         
             return { "value": `${ value }` };
         });
     });
 
-    const result = tofixedJason(results);
+    const result = await tofixedJson(results);
 
     await browser.close();
 
     return result;
 }
 
-const tofixedJason = async (results) => {
-    console.log(results)
-    for(let i=0; i<16; i++) {
-        if(i == 1) {
-            json.mesdereferencia = results[i].value;
-        }
-        if(i == 3) {
-            json.codigoFipe = results[i].value;
-        }
-        if(i == 5) {
-            json.marca = results[i].value;
-        }
-        if(i == 7) {
-            json.modelo = results[i].value;
-        }
-        if(i == 9) {
-            json.anoModelo = results[i].value;
-        }
-        if(i == 11) {
-            json.autenticacao = results[i].value;
-        }
-        if(i == 13) {
-            json.dataDaConsulta = results[i].value;
-        }
-        if(i == 15) {
-            json.precoMedio = results[i].value;
+const tofixedJson = async (results) => {
+    if(results.length == 0) {
+        json.mesdereferencia = "",
+        json.codigoFipe = "",
+        json.marca = "",
+        json.modelo = "",
+        json.anoModelo = "",
+        json.autenticacao = "",
+        json.dataDaConsulta = "",
+        json.precoMedio = ""
+
+        return json;
+    } else {
+        for(let i=0; i<16; i++) {
+            if(i == 1) {
+                json.mesdereferencia = await results[i].value;
+            }
+            if(i == 3) {
+                json.codigoFipe = results[i].value;
+            }
+            if(i == 5) {
+                json.marca = results[i].value;
+            }
+            if(i == 7) {
+                json.modelo = results[i].value;
+            }
+            if(i == 9) {
+                json.anoModelo = results[i].value;
+            }
+            if(i == 11) {
+                json.autenticacao = results[i].value;
+            }
+            if(i == 13) {
+                json.dataDaConsulta = results[i].value;
+            }
+            if(i == 15) {
+                json.precoMedio = results[i].value;
+            }
         }
     }
 
