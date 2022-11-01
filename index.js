@@ -14,9 +14,17 @@ app.listen(port, ()=>console.log("API rodando..."));
 
 
 //End Point
+app.post('/period', async function(req, res) {
+
+    let period = req.body
+    let brands = await searchBrand(period);
+
+    return res.send(brands);
+})
+
 app.post('/brand', async function(req, res) {
-    let model = req.body
-    let models = await searchModel(model);
+    let brand = req.body
+    let models = await searchModel(brand);
 
     return res.send(models);
 })
@@ -56,12 +64,36 @@ app.post('/fipe', async function(req, res) {
 
 
 //Functions
-const searchModel = async (model) => {
+const searchBrand = async (period) => {
 
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/#carro');
-    await page.select('#selectMarcacarro', model.brand); //model.brand
+    await page.select('#selectMarcacarro', period.period);
+
+    const brands = await page.evaluate(resp => {
+        return [...document.querySelectorAll('#selectMarcacarro option')].map(resp => { 
+            const label = resp.textContent.split('|')[0].trim();
+            const value = resp.value.split('|')[0].trim();
+        
+            return { "Label": `${label}`, "Value": `${value}`};
+        });
+    });
+    
+    //Delete first item array
+    brands.shift();
+
+    await browser.close();
+
+    return brands;
+}
+
+const searchModel = async (brand) => {
+
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('https://veiculos.fipe.org.br/#carro');
+    await page.select('#selectMarcacarro', brand.brand);
 
     const models = await page.evaluate(resp => {
         return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
