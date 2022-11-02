@@ -1,8 +1,9 @@
 //Import library
-const  express  = require('express');
+const express  = require('express');
 const cors =  require('cors');
 const puppeteer = require('puppeteer');
 const app = express();
+const db = require("./db");
 
 //Config port
 const port = process.env.PORT || 3000;
@@ -36,6 +37,15 @@ app.post('/modelyear', async function(req, res) {
     return res.send(modelsYears);
 })
 
+
+// //index.js
+// (async () => {
+//     const db = require("./db");
+//     console.log('Conectou!');
+//     const vihicle = await db.selectCustomers();
+//     console.log(vihicle);
+// })();
+
 app.post('/fipe', async function(req, res) {
     let payload = req.body
     let results = []
@@ -57,6 +67,10 @@ app.post('/fipe', async function(req, res) {
 
         results.push(result)
         i++
+
+        db.insertVehicleTable(result)
+        db.insertQueryTable(result)
+
     }
 
     return res.send(results);
