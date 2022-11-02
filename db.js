@@ -8,8 +8,8 @@ async function connect(){
             host: 'localhost',
             port: '3306',
             user: 'root',
-            password: 'jackson1500',
-            database: 'fipe_scrapping'
+            password: '',
+            database: 'scraping'
         })
 
     console.log("Conectou no MySQL!");
