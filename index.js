@@ -68,8 +68,11 @@ app.post('/fipe', async function(req, res) {
         results.push(result)
         i++
 
-        db.insertVehicleTable(result)
-        db.insertQueryTable(result)
+        let key = gerarPassword()
+
+        db.insertVehicleTable(result, key)
+        db.insertQueryTable(result, key)
+
 
     }
 
@@ -258,4 +261,8 @@ const tofixedJson = async (results) => {
     }
 
     return json;
+}
+
+function gerarPassword() {
+    return Math.random().toString(36).slice(-10);
 }
