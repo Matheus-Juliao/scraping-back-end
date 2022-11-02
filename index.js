@@ -37,15 +37,6 @@ app.post('/modelyear', async function(req, res) {
     return res.send(modelsYears);
 })
 
-
-// //index.js
-// (async () => {
-//     const db = require("./db");
-//     console.log('Conectou!');
-//     const vihicle = await db.selectCustomers();
-//     console.log(vihicle);
-// })();
-
 app.post('/fipe', async function(req, res) {
     let payload = req.body
     let results = []
