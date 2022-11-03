@@ -17,14 +17,14 @@ app.listen(port, ()=>console.log("API rodando..."));
 //End Point
 app.post('/period', async function(req, res) {
 
-    let period = req.body
+    let period = req.body;
     let brands = await searchBrand(period);
 
     return res.send(brands);
 })
 
 app.post('/brand', async function(req, res) {
-    let brand = req.body
+    let brand = req.body;
     let models = await searchModel(brand);
 
     return res.send(models);
@@ -38,33 +38,57 @@ app.post('/modelyear', async function(req, res) {
 })
 
 app.post('/fipe', async function(req, res) {
-    let payload = req.body
-    let results = []
-    let i = 0
+    let payload = req.body;
 
+    let results = [];
+    let i = 0;
+    
     for(let period of payload.period) {
-        let resp = await fipe(payload, period);
+        const con = await db.confirmRegistration(payload, period);
 
-        let result = new Object();
+        if(con[0]?.cod_brand == payload.brand 
+            && con[0]?.cod_model == payload.model
+            && con[0]?.cod_model_year == payload.year
+            && con[0]?.cod_reference_month == period) {
 
-        result.mesdereferencia = resp.mesdereferencia
-        result.codigoFipe = resp.codigoFipe
-        result.marca = resp.marca
-        result.modelo = resp.modelo
-        result.anoModelo = resp.anoModelo
-        result.autenticacao = resp.autenticacao
-        result.dataDaConsulta = resp.dataDaConsulta
-        result.precoMedio = resp.precoMedio
+            const query = await db.selectQueryAndVehicleTable(con[0]?.fk_cod_vehicle_table)
+            let result = new Object();
 
-        results.push(result)
-        i++
+            result.mesdereferencia = query[0]?.reference_month;
+            result.codigoFipe = query[0].fipe_code;
+            result.marca = query[0]?.brand;
+            result.modelo = query[0]?.model;
+            result.anoModelo = query[0]?.model_year;
+            result.autenticacao = query[0]?.authentication;
+            result.dataDaConsulta = query[0]?.consultation_date;
+            result.precoMedio = query[0]?.average_price;
 
-        let key = gerarPassword()
+            results.push(result);
+            i++;
 
-        db.insertVehicleTable(result, key)
-        db.insertQueryTable(result, key)
+        } else {
 
+            let resp = await fipe(payload, period);
+            let result = new Object();
 
+            result.mesdereferencia = resp.mesdereferencia;
+            result.codigoFipe = resp.codigoFipe;
+            result.marca = resp.marca;
+            result.modelo = resp.modelo;
+            result.anoModelo = resp.anoModelo;
+            result.autenticacao = resp.autenticacao;
+            result.dataDaConsulta = resp.dataDaConsulta;
+            result.precoMedio = resp.precoMedio;
+    
+            results.push(result);
+            i++;
+    
+            const key = gerarPassword();
+
+            await db.insertVehicleTable(result, key);
+            await db.insertQueryTable(result, key);
+            await db.insertCodVehicleTable(payload, period, key);
+        }
     }
 
     return res.send(results);

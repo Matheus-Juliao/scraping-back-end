@@ -17,13 +17,6 @@ async function connect(){
     return connection;
 }
 
-
-async function selectCustomers(){
-    const conn = await connect();
-    const [rows] = await conn.query('Select * from vehicle_table');
-    return rows;
-}
-
 async function insertVehicleTable(results, key){
     const conn = await connect();
     const sql = 'INSERT INTO vehicle_table (id_vehicle_table, brand, model, model_year) VALUES (?,?,?,?)';
@@ -33,12 +26,42 @@ async function insertVehicleTable(results, key){
 
 async function insertQueryTable(results, key){
     const conn = await connect();
-    const sql = 'INSERT INTO query_table (fipe_code, reference_month, authentication, consultation_date, average_price, id_vehicle_table) VALUES (?,?,?,?,?,?)';
+    const sql = 'INSERT INTO query_table (fipe_code, reference_month, authentication, consultation_date, average_price, fk_vehicle_table) VALUES (?,?,?,?,?,?)';
     const values = [results.codigoFipe, results.mesdereferencia, results.autenticacao, results.dataDaConsulta, results.precoMedio, key];
     return await conn.query(sql, values);
 }
 
+async function insertCodVehicleTable(payload, period, key){
+    const conn = await connect();
+    const sql = 'INSERT INTO cod_vehicle_table (cod_brand, cod_model, cod_model_year, cod_reference_month, fk_cod_vehicle_table) VALUES (?,?,?,?,?)';
+    const values = [payload.brand, payload.model, payload.year, period, key];
+    return await conn.query(sql, values);
+}
 
+async function confirmRegistration(payload, period){
+    const conn = await connect();
+    const sql = 'SELECT fk_cod_vehicle_table, cod_brand, cod_model, cod_model_year, cod_reference_month FROM cod_vehicle_table WHERE cod_brand = ? AND cod_model = ? AND cod_model_year = ? AND cod_reference_month = ?';
+    const values = [payload.brand, payload.model, payload.year, period];
+    const [resp] = await conn.query(sql, values);
+    
+    return await resp;
+}
+
+async function selectQueryAndVehicleTable(id_cod_vehicle_table){
+    const conn = await connect();
+    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price  FROM vehicle_table INNER JOIN query_table ON query_table.fk_vehicle_table = ?';
+    const values = [id_cod_vehicle_table];
+
+    const [resp] = await conn.query(sql, values)
+
+    return await resp;
+}
 
 //aqui exportamos tudo que desejamos usar no index.js
-module.exports = {insertVehicleTable, insertQueryTable};
+module.exports = { 
+    insertVehicleTable, 
+    insertQueryTable,
+    insertCodVehicleTable,
+    confirmRegistration,
+    selectQueryAndVehicleTable
+};
