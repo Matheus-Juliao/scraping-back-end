@@ -253,25 +253,25 @@ const tofixedJson = async (results) => {
                 case 1: json.mesdereferencia = await results[i].value;
                 break;
 
-                case 3: json.codigoFipe = results[i].value;
+                case 3: json.codigoFipe = await results[i].value;
                 break;
 
-                case 5: json.marca = results[i].value;
+                case 5: json.marca = await results[i].value;
                 break;
 
-                case 7: json.modelo = results[i].value;
+                case 7: json.modelo = await results[i].value;
                 break;
 
-                case 9: json.anoModelo = results[i].value;
+                case 9: json.anoModelo = await results[i].value;
                 break;
 
-                case 11: json.autenticacao = results[i].value;
+                case 11: json.autenticacao = await results[i].value;
                 break;
 
-                case 13: json.dataDaConsulta = results[i].value;
+                case 13: json.dataDaConsulta = await results[i].value;
                 break;
 
-                case 15: json.precoMedio = results[i].value;
+                case 15: json.precoMedio = await results[i].value;
                 break;
             }
         }
