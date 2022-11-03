@@ -21,21 +21,22 @@ async function insertVehicleTable(results, key){
     const conn = await connect();
     const sql = 'INSERT INTO vehicle_table (id_vehicle_table, brand, model, model_year) VALUES (?,?,?,?)';
     const values = [key, results.marca, results.modelo, results.anoModelo];
-    return await conn.query(sql, values);
+    return conn.query(sql, values);
 }
 
 async function insertQueryTable(results, key){
     const conn = await connect();
     const sql = 'INSERT INTO query_table (fipe_code, reference_month, authentication, consultation_date, average_price, fk_vehicle_table) VALUES (?,?,?,?,?,?)';
     const values = [results.codigoFipe, results.mesdereferencia, results.autenticacao, results.dataDaConsulta, results.precoMedio, key];
-    return await conn.query(sql, values);
+
+    return conn.query(sql, values);
 }
 
 async function insertCodVehicleTable(payload, period, key){
     const conn = await connect();
     const sql = 'INSERT INTO cod_vehicle_table (cod_brand, cod_model, cod_model_year, cod_reference_month, fk_cod_vehicle_table) VALUES (?,?,?,?,?)';
     const values = [payload.brand, payload.model, payload.year, period, key];
-    return await conn.query(sql, values);
+    return conn.query(sql, values);
 }
 
 async function confirmRegistration(payload, period){
@@ -44,7 +45,7 @@ async function confirmRegistration(payload, period){
     const values = [payload.brand, payload.model, payload.year, period];
     const [resp] = await conn.query(sql, values);
     
-    return await resp;
+    return resp;
 }
 
 async function selectQueryAndVehicleTable(id_cod_vehicle_table){
@@ -54,7 +55,7 @@ async function selectQueryAndVehicleTable(id_cod_vehicle_table){
 
     const [resp] = await conn.query(sql, values)
 
-    return await resp;
+    return resp;
 }
 
 //aqui exportamos tudo que desejamos usar no index.js
