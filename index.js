@@ -248,29 +248,31 @@ const tofixedJson = async (results) => {
         return json;
     } else {
         for(let i=0; i<16; i++) {
-            if(i == 1) {
-                json.mesdereferencia = await results[i].value;
-            }
-            if(i == 3) {
-                json.codigoFipe = results[i].value;
-            }
-            if(i == 5) {
-                json.marca = results[i].value;
-            }
-            if(i == 7) {
-                json.modelo = results[i].value;
-            }
-            if(i == 9) {
-                json.anoModelo = results[i].value;
-            }
-            if(i == 11) {
-                json.autenticacao = results[i].value;
-            }
-            if(i == 13) {
-                json.dataDaConsulta = results[i].value;
-            }
-            if(i == 15) {
-                json.precoMedio = results[i].value;
+
+            switch(i) {
+                case 1: json.mesdereferencia = await results[i].value;
+                break;
+
+                case 3: json.codigoFipe = results[i].value;
+                break;
+
+                case 5: json.marca = results[i].value;
+                break;
+
+                case 7: json.modelo = results[i].value;
+                break;
+
+                case 9: json.anoModelo = results[i].value;
+                break;
+
+                case 11: json.autenticacao = results[i].value;
+                break;
+
+                case 13: json.dataDaConsulta = results[i].value;
+                break;
+
+                case 15: json.precoMedio = results[i].value;
+                break;
             }
         }
     }
