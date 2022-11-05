@@ -39,7 +39,6 @@ app.post('/modelyear', async function(req, res) {
 
 app.post('/fipe', async function(req, res) {
     let payload = req.body;
-
     let results = [];
     let i = 0;
     
@@ -51,7 +50,7 @@ app.post('/fipe', async function(req, res) {
             && con[0]?.cod_model_year == payload.year
             && con[0]?.cod_reference_month == period) {
 
-            const query = await db.selectQueryAndVehicleTable(con[0]?.fk_cod_vehicle_table)
+            const query = await db.selectQueryAndVehicleTable(con[0]?.fk_id_vehicle_table)
             let result = new Object();
 
             result.mesdereferencia = query[0]?.reference_month;
@@ -89,6 +88,31 @@ app.post('/fipe', async function(req, res) {
             await db.insertQueryTable(result, key);
             await db.insertCodVehicleTable(payload, period, key);
         }
+    }
+
+    return res.send(results);
+})
+
+app.post('/print', async function(req, res) {
+    let payload = req.body;
+    let results = [];
+    let i = 0;
+    
+    for(let period of payload.period) {
+        const query = await db.selectQueryAndVehicleTablePrint(period)
+        let result = new Object();
+
+        result.mesdereferencia = query[0]?.reference_month;
+        result.codigoFipe = query[0].fipe_code;
+        result.marca = query[0]?.brand;
+        result.modelo = query[0]?.model;
+        result.anoModelo = query[0]?.model_year;
+        result.autenticacao = query[0]?.authentication;
+        result.dataDaConsulta = query[0]?.consultation_date;
+        result.precoMedio = query[0]?.average_price;
+
+        results.push(result);
+        i++;
     }
 
     return res.send(results);
