@@ -41,6 +41,8 @@ app.post('/fipe', async function(req, res) {
     let payload = req.body;
     let results = [];
     let i = 0;
+    let previousPeriod = '';
+    
     
     for(let period of payload.period) {
         const con = await db.confirmRegistration(payload, period);
@@ -65,32 +67,41 @@ app.post('/fipe', async function(req, res) {
             results.push(result);
             i++;
 
+            previousPeriod = query[0]?.reference_month;
+
         } else {
 
             let resp = await fipe(payload, period);
             let result = new Object();
 
-            result.mesdereferencia = resp.mesdereferencia;
-            result.codigoFipe = resp.codigoFipe;
-            result.marca = resp.marca;
-            result.modelo = resp.modelo;
-            result.anoModelo = resp.anoModelo;
-            result.autenticacao = resp.autenticacao;
-            result.dataDaConsulta = resp.dataDaConsulta;
-            result.precoMedio = resp.precoMedio;
-    
-            results.push(result);
-            i++;
-    
-            const key = gerarPassword();
+            if(resp.mesdereferencia == '') {
+                break;
+            }  
+            else {
+                result.mesdereferencia = resp.mesdereferencia;
+                result.codigoFipe = resp.codigoFipe;
+                result.marca = resp.marca;
+                result.modelo = resp.modelo;
+                result.anoModelo = resp.anoModelo;
+                result.autenticacao = resp.autenticacao;
+                result.dataDaConsulta = resp.dataDaConsulta;
+                result.precoMedio = resp.precoMedio;
+        
+                results.push(result);
+                i++;
+        
+                const key = gerarPassword();
 
-            await db.insertVehicleTable(result, key);
-            await db.insertQueryTable(result, key);
-            await db.insertCodVehicleTable(payload, period, key);
+                await db.insertVehicleTable(result, key);
+                await db.insertQueryTable(result, key);
+                await db.insertCodVehicleTable(payload, period, key);
+
+                previousPeriod = resp.mesdereferencia;
+            }
         }
     }
 
-    return res.send(results);
+    return res.send({ result: results, previousPeriod: previousPeriod });
 })
 
 app.post('/print', async function(req, res) {
