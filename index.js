@@ -56,7 +56,7 @@ app.post('/fipe', async function(req, res) {
             let result = new Object();
 
             result.mesdereferencia = query[0]?.reference_month;
-            result.codigoFipe = query[0].fipe_code;
+            result.codigoFipe = query[0]?.fipe_code;
             result.marca = query[0]?.brand;
             result.modelo = query[0]?.model;
             result.anoModelo = query[0]?.model_year;
