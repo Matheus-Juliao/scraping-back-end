@@ -8,7 +8,7 @@ async function connect(){
             host: 'localhost',
             port: '3306',
             user: 'root',
-            password: 'jackson1500',
+            password: '',
             database: 'scraping'
         })
 
@@ -43,6 +43,13 @@ async function insertPeriodDb(code, monthYear, seq){
     const conn = await connect();
     const sql = 'INSERT INTO period (id_code_period, mes_ano, seq) VALUES (?,?,?)';
     const values = [code, monthYear, seq];
+    return conn.query(sql, values);
+}
+
+async function insertBrandDb(id_value, model, fk_id_value, seq){
+    const conn = await connect();
+    const sql = 'INSERT INTO models (id_value, model, fk_id_value, seq) VALUES (?,?,?,?)';
+    const values = [id_value, model, fk_id_value, seq];
     return conn.query(sql, values);
 }
 
@@ -91,6 +98,7 @@ module.exports = {
     insertQueryTable,
     insertCodVehicleTable,
     insertPeriodDb,
+    insertBrandDb,
     confirmRegistration,
     selectQueryAndVehicleTable,
     selectQueryAndVehicleTablePrint,
