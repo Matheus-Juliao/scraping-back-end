@@ -39,17 +39,17 @@ async function insertCodVehicleTable(payload, period, key){
     return conn.query(sql, values);
 }
 
-async function insertPeriodDb(code, monthYear, seq){
+async function insertPeriodDb(Codigo, Mes, seq){
     const conn = await connect();
-    const sql = 'INSERT INTO period (id_code_period, mes_ano, seq) VALUES (?,?,?)';
-    const values = [code, monthYear, seq];
+    const sql = 'INSERT INTO period (Codigo, Mes, seq) VALUES (?,?,?)';
+    const values = [Codigo, Mes, seq];
     return conn.query(sql, values);
 }
 
-async function insertBrandDb(id_value, model, fk_id_value, seq){
+async function insertBrandDb(Value, Label, period){
     const conn = await connect();
-    const sql = 'INSERT INTO models (id_value, model, fk_id_value, seq) VALUES (?,?,?,?)';
-    const values = [id_value, model, fk_id_value, seq];
+    const sql = 'INSERT INTO models (Value, Label, fk_id_Value) VALUES (?,?,?)';
+    const values = [Value, Label, period];
     return conn.query(sql, values);
 }
 
@@ -59,6 +59,16 @@ async function confirmRegistration(payload, period){
     const values = [payload.brand, payload.model, payload.year, period];
     const [resp] = await conn.query(sql, values);
     
+    return resp;
+}
+
+async function selectBrand(period){
+    const conn = await connect();
+    const sql = 'SELECT Value, Label FROM models WHERE fk_id_Value = ?';
+    const values = [period];
+
+    const [resp] = await conn.query(sql, values)
+
     return resp;
 }
 
@@ -84,7 +94,7 @@ async function selectQueryAndVehicleTablePrint(period){
 
 async function selectPeriodLimit(){
     const conn = await connect();
-    const sql = 'SELECT id_code_period FROM period LIMIT ?';
+    const sql = 'SELECT Codigo FROM period LIMIT ?';
     const values = [1];
 
     const [resp] = await conn.query(sql, values)
@@ -100,6 +110,7 @@ module.exports = {
     insertPeriodDb,
     insertBrandDb,
     confirmRegistration,
+    selectBrand,
     selectQueryAndVehicleTable,
     selectQueryAndVehicleTablePrint,
     selectPeriodLimit

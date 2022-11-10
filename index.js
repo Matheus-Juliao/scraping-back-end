@@ -6,10 +6,11 @@ const app = express();
 const db = require("./db");
 const period = require("./period");
 
-//Register period month "novembro de 2022" if not exist
+//Register period actual and models period if not exist data in table
 (async () =>{
     const ret = await db.selectPeriodLimit()
-    if(ret[0]?.id_code_period != 1) {
+
+    if(ret[0]?.Codigo != 1) {
         await period.insertPeriod();
         console.log('Insered period')
     }
@@ -28,9 +29,20 @@ app.listen(port, ()=>console.log("API rodando..."));
 app.post('/period', async function(req, res) {
 
     let period = req.body;
-    let brands = await searchBrand(period);
+    let resp = await db.selectBrand(period.period);
 
-    return res.send(brands);
+    if(resp.length > 0){
+        return res.send(resp);
+    } else {
+        let brands = await searchBrand(period);
+
+        for(let i=0; i<brands.length; i++) {
+            await db.insertBrandDb(brands[i].Value, brands[i].Label, period.period);
+        }
+
+        return res.send(brands);
+    }
+
 })
 
 app.post('/brand', async function(req, res) {

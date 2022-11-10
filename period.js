@@ -24,7 +24,7 @@ const insertPeriod = async () => {
     }
 
     for(let i=0; i<brand.length; i++) {
-        db.insertBrandDb(value[i], brand[i], codigo[0], (i+1));
+        db.insertBrandDb(value[i], brand[i], codigo[0]);
     }
 }
 
