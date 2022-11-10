@@ -48,7 +48,7 @@ async function insertPeriodDb(Codigo, Mes, seq){
 
 async function insertBrandDb(Value, Label, period){
     const conn = await connect();
-    const sql = 'INSERT INTO models (Value, Label, fk_id_Value) VALUES (?,?,?)';
+    const sql = 'INSERT INTO brands (Value, Label, fk_id_Value) VALUES (?,?,?)';
     const values = [Value, Label, period];
     return conn.query(sql, values);
 }
@@ -64,7 +64,7 @@ async function confirmRegistration(payload, period){
 
 async function selectBrand(period){
     const conn = await connect();
-    const sql = 'SELECT Value, Label FROM models WHERE fk_id_Value = ?';
+    const sql = 'SELECT Value, Label FROM brands WHERE fk_id_Value = ?';
     const values = [period];
 
     const [resp] = await conn.query(sql, values)
