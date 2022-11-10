@@ -4,6 +4,16 @@ const cors =  require('cors');
 const puppeteer = require('puppeteer');
 const app = express();
 const db = require("./db");
+const period = require("./period");
+
+//Register period month "novembro de 2022" if not exist
+(async () =>{
+    const ret = await db.selectPeriodLimit()
+    if(ret[0]?.id_code_period != 1) {
+        await period.insertPeriod();
+        console.log('Insered period')
+    }
+})();
 
 //Config port
 const port = process.env.PORT || 3000;
@@ -137,7 +147,7 @@ const searchBrand = async (period) => {
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/#carro');
     await page.select('#selectMarcacarro', period.period);
-
+    
     const brands = await page.evaluate(resp => {
         return [...document.querySelectorAll('#selectMarcacarro option')].map(resp => { 
             const label = resp.textContent.split('|')[0].trim();

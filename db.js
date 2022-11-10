@@ -39,6 +39,13 @@ async function insertCodVehicleTable(payload, period, key){
     return conn.query(sql, values);
 }
 
+async function insertPeriodDb(code, monthYear, seq){
+    const conn = await connect();
+    const sql = 'INSERT INTO period (id_code_period, mes_ano, seq) VALUES (?,?,?)';
+    const values = [code, monthYear, seq];
+    return conn.query(sql, values);
+}
+
 async function confirmRegistration(payload, period){
     const conn = await connect();
     const sql = 'SELECT fk_id_vehicle_table, cod_brand, cod_model, cod_model_year, cod_reference_month FROM cod_vehicle_table WHERE cod_brand = ? AND cod_model = ? AND cod_model_year = ? AND cod_reference_month = ?';
@@ -68,12 +75,24 @@ async function selectQueryAndVehicleTablePrint(period){
     return resp;
 }
 
+async function selectPeriodLimit(){
+    const conn = await connect();
+    const sql = 'SELECT id_code_period FROM period LIMIT ?';
+    const values = [1];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
 //aqui exportamos tudo que desejamos usar no index.js
 module.exports = { 
     insertVehicleTable, 
     insertQueryTable,
     insertCodVehicleTable,
+    insertPeriodDb,
     confirmRegistration,
     selectQueryAndVehicleTable,
-    selectQueryAndVehicleTablePrint
+    selectQueryAndVehicleTablePrint,
+    selectPeriodLimit
 };
