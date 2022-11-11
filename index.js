@@ -47,9 +47,25 @@ app.post('/period', async function(req, res) {
 
 app.post('/brand', async function(req, res) {
     let brand = req.body;
-    let models = await searchModel(brand);
 
-    return res.send(models);
+    let model = await db.selectModel(brand.brand);
+
+    if(model.length > 0){
+        let year = await db.selectYear(brand.brand);
+        return res.send({models: model, years: year});
+    } else {
+        let modelsYears = await searchModel(brand);
+
+        for(let i=0; i<modelsYears.models.length; i++) {
+            await db.insertModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, brand.brand);
+        }
+
+        for(let i=0; i<modelsYears.years.length; i++) {
+            await db.insertYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, brand.brand);
+        }
+
+        return res.send(modelsYears);
+    } 
 })
 
 app.post('/modelyear', async function(req, res) {
