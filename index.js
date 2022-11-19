@@ -52,7 +52,7 @@ app.post('/brand', async function(req, res) {
 
     if(model.length > 0){
         let year = await db.selectYear(brand.brand);
-        return res.send({models: model, years: year});
+        return res.send({ models: model, years: year });
     } else {
         let modelsYears = await searchModel(brand);
 
@@ -70,9 +70,46 @@ app.post('/brand', async function(req, res) {
 
 app.post('/modelyear', async function(req, res) {
     let modelYear = req.body
-    let modelsYears = await searchModelYear(modelYear);
+    
+    //model
+    if(modelYear.cod == 1) {
+        let year = await db.selectModelYear(modelYear.model);
+        
+        if(year.length > 0) {
+            return res.send({ years: year });
+        } else {
+            let modelsYears = await searchModelYear(modelYear);
+            let idValue = await db.selectIdModel(modelYear.model);
+            
+            for(let i=0; i<modelsYears.years.length; i++) {
+                await db.insertModelYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, idValue[0].id_Value);
+            }
+    
+            return res.send(modelsYears);
+        }
 
-    return res.send(modelsYears);
+
+    }
+    //year
+    if(modelYear.cod == 2) {
+        let model = await db.selectYearModel(modelYear.year);
+        
+        if(model.length > 0){
+            return res.send({ models: model });
+        } else {
+            let modelsYears = await searchModelYear(modelYear);          
+            let label = await db.selectLabelYear(modelYear.year);
+
+        
+            for(let i=0; i<modelsYears.models.length; i++) {
+                let idModel = await db.selectIdModel(modelsYears.models[i].Value);
+                await db.insertYearModelDb(modelYear.year, label[0].Label, idModel[0].id_Value);
+            }
+    
+            return res.send(modelsYears);
+        }
+    }
+
 })
 
 app.post('/fipe', async function(req, res) {

@@ -50,6 +50,20 @@ async function insertYearDb(Value, Label, fk_id_Value){
     return conn.query(sql, values);
 }
 
+async function insertModelYearDb(Value, Label, fk_id_Value){
+    const conn = await con.connect();
+    const sql = 'INSERT INTO modelYear (Value, Label, fk_id_Value) VALUES (?,?,?)';
+    const values = [Value, Label, fk_id_Value];
+    return conn.query(sql, values);
+}
+
+async function insertYearModelDb(Value, Label, fk_id_Value){
+    const conn = await con.connect();
+    const sql = 'INSERT INTO yearModel (Value, Label, fk_id_Value) VALUES (?,?,?)';
+    const values = [Value, Label, fk_id_Value];
+    return conn.query(sql, values);
+}
+
 async function confirmRegistration(payload, period){
     const conn = await con.connect();
     const sql = 'SELECT fk_id_vehicle_table, cod_brand, cod_model, cod_model_year, cod_reference_month FROM cod_vehicle_table WHERE cod_brand = ? AND cod_model = ? AND cod_model_year = ? AND cod_reference_month = ?';
@@ -88,6 +102,59 @@ async function selectYear(brand){
 
     return resp;
 }
+
+async function selectLabelYear(Value){
+    const conn = await con.connect();
+    const sql = 'SELECT Label FROM years WHERE Value = ?';
+    const values = [Value];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
+async function selectIdModel(Value){
+    const conn = await con.connect();
+    const sql = 'SELECT id_Value FROM models WHERE Value = ?';
+    const values = [Value];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
+// async function selectIdBrand(Value, period){
+//     const conn = await con.connect();
+//     const sql = 'SELECT id_Value FROM brands WHERE Value = ? AND fk_id_Value = ?';
+//     const values = [Value, period];
+
+//     const [resp] = await conn.query(sql, values)
+
+//     return resp;
+// }
+
+
+
+async function selectModelYear(model){
+    const conn = await con.connect();
+    const sql = 'SELECT modelYear.Value, modelYear.Label FROM modelYear INNER JOIN models ON models.id_Value = modelYear.fk_id_value WHERE models.Value = ?';
+    const values = [model];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
+async function selectYearModel(Value){
+    const conn = await con.connect();
+    const sql = 'SELECT models.Value, models.Label FROM models INNER JOIN yearModel ON yearModel.fk_id_Value = models.id_Value WHERE yearModel.Value = ?';
+    const values = [Value];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
 
 async function selectQueryAndVehicleTable(id_cod_vehicle_table){
     const conn = await con.connect();
@@ -128,10 +195,17 @@ module.exports = {
     insertBrandDb,
     insertModelDb,
     insertYearDb,
+    insertModelYearDb,
+    insertYearModelDb,
     confirmRegistration,
     selectBrand,
     selectModel,
     selectYear,
+    selectIdModel,
+    // selectIdBrand,
+    selectLabelYear,
+    selectModelYear,
+    selectYearModel,
     selectQueryAndVehicleTable,
     selectQueryAndVehicleTablePrint,
     selectPeriodLimit
