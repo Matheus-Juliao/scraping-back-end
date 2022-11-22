@@ -158,7 +158,7 @@ async function selectYearModel(Value){
 
 async function selectQueryAndVehicleTable(id_cod_vehicle_table){
     const conn = await con.connect();
-    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price  FROM vehicle_table INNER JOIN query_table ON query_table.fk_id_vehicle_table = ?';
+    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price  FROM vehicle_table INNER JOIN query_table ON fk_id_vehicle_table = id_vehicle_table WHERE id_vehicle_table = ?';
     const values = [id_cod_vehicle_table];
 
     const [resp] = await conn.query(sql, values)
