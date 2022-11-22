@@ -83,10 +83,30 @@ async function selectBrand(period){
     return resp;
 }
 
-async function selectModel(brand){
+async function selectIdBrand(Value, period){
     const conn = await con.connect();
-    const sql = 'SELECT Value, Label FROM models where fk_id_Value = ?';
-    const values = [brand];
+    const sql = 'SELECT id_Value FROM brands WHERE Value = ? AND fk_id_Value = ?'
+    const values = [Value, period];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
+async function selectModel(id_Value){
+    const conn = await con.connect();
+    const sql = 'SELECT models.Value, models.Label FROM models INNER JOIN brands ON models.fk_id_Value = brands.id_Value WHERE models.fk_id_Value = ?';
+    const values = [id_Value];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
+async function selectIdModel(Value, fk_id_Value){
+    const conn = await con.connect();
+    const sql = 'SELECT id_Value FROM models WHERE Value = ? AND fk_id_Value = ?';
+    const values = [Value, fk_id_Value];
 
     const [resp] = await conn.query(sql, values)
 
@@ -103,6 +123,16 @@ async function selectYear(brand){
     return resp;
 }
 
+async function selectIdYear(Value, fk_id_Value){
+    const conn = await con.connect();
+    const sql = 'SELECT id_Value FROM years WHERE Value = ? AND fk_id_Value = ?';
+    const values = [Value, fk_id_Value];
+
+    const [resp] = await conn.query(sql, values)
+
+    return resp;
+}
+
 async function selectLabelYear(Value){
     const conn = await con.connect();
     const sql = 'SELECT Label FROM years WHERE Value = ?';
@@ -113,42 +143,20 @@ async function selectLabelYear(Value){
     return resp;
 }
 
-async function selectIdModel(Value){
+async function selectModelYear(fk_id_Value){
     const conn = await con.connect();
-    const sql = 'SELECT id_Value FROM models WHERE Value = ?';
-    const values = [Value];
+    const sql = 'SELECT modelYear.Value, modelYear.Label FROM modelYear WHERE fk_id_Value = ?';
+    const values = [fk_id_Value];
 
     const [resp] = await conn.query(sql, values)
 
     return resp;
 }
 
-// async function selectIdBrand(Value, period){
-//     const conn = await con.connect();
-//     const sql = 'SELECT id_Value FROM brands WHERE Value = ? AND fk_id_Value = ?';
-//     const values = [Value, period];
-
-//     const [resp] = await conn.query(sql, values)
-
-//     return resp;
-// }
-
-
-
-async function selectModelYear(model){
+async function selectYearModel(fk_id_Value){
     const conn = await con.connect();
-    const sql = 'SELECT modelYear.Value, modelYear.Label FROM modelYear INNER JOIN models ON models.id_Value = modelYear.fk_id_value WHERE models.Value = ?';
-    const values = [model];
-
-    const [resp] = await conn.query(sql, values)
-
-    return resp;
-}
-
-async function selectYearModel(Value){
-    const conn = await con.connect();
-    const sql = 'SELECT models.Value, models.Label FROM models INNER JOIN yearModel ON yearModel.fk_id_Value = models.id_Value WHERE yearModel.Value = ?';
-    const values = [Value];
+    const sql = 'SELECT Value, Label FROM yearModel WHERE fk_id_Value = ?';
+    const values = [fk_id_Value];
 
     const [resp] = await conn.query(sql, values)
 
@@ -199,10 +207,11 @@ module.exports = {
     insertYearModelDb,
     confirmRegistration,
     selectBrand,
+    selectIdBrand,
     selectModel,
-    selectYear,
     selectIdModel,
-    // selectIdBrand,
+    selectYear,
+    selectIdYear,
     selectLabelYear,
     selectModelYear,
     selectYearModel,

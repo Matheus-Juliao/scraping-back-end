@@ -46,22 +46,22 @@ app.post('/period', async function(req, res) {
 })
 
 app.post('/brand', async function(req, res) {
-    let brand = req.body;
-
-    let model = await db.selectModel(brand.brand);
+    let payload = req.body;
+    let id_Value = await db.selectIdBrand(payload.brand, payload.period);
+    let model = await db.selectModel(id_Value[0].id_Value);
 
     if(model.length > 0){
-        let year = await db.selectYear(brand.brand);
+        let year = await db.selectYear(id_Value[0].id_Value);
         return res.send({ models: model, years: year });
     } else {
-        let modelsYears = await searchModel(brand);
+        let modelsYears = await searchModel(payload);
 
         for(let i=0; i<modelsYears.models.length; i++) {
-            await db.insertModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, brand.brand);
+            await db.insertModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, id_Value[0].id_Value);
         }
 
         for(let i=0; i<modelsYears.years.length; i++) {
-            await db.insertYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, brand.brand);
+            await db.insertYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, id_Value[0].id_Value);
         }
 
         return res.send(modelsYears);
@@ -73,13 +73,14 @@ app.post('/modelyear', async function(req, res) {
     
     //model
     if(modelYear.cod == 1) {
-        let year = await db.selectModelYear(modelYear.model);
+        let id = await db.selectIdBrand(modelYear.brand, modelYear.period);
+        let idValue = await db.selectIdModel(modelYear.model, id[0].id_Value);
+        let year = await db.selectModelYear(idValue[0].id_Value);
         
         if(year.length > 0) {
             return res.send({ years: year });
         } else {
             let modelsYears = await searchModelYear(modelYear);
-            let idValue = await db.selectIdModel(modelYear.model);
             
             for(let i=0; i<modelsYears.years.length; i++) {
                 await db.insertModelYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, idValue[0].id_Value);
@@ -87,29 +88,25 @@ app.post('/modelyear', async function(req, res) {
     
             return res.send(modelsYears);
         }
-
-
     }
     //year
     if(modelYear.cod == 2) {
-        let model = await db.selectYearModel(modelYear.year);
+        let id = await db.selectIdBrand(modelYear.brand, modelYear.period);
+        let idValue = await db.selectIdYear(modelYear.year, id[0].id_Value);
+        let model = await db.selectYearModel(idValue[0].id_Value);
         
         if(model.length > 0){
             return res.send({ models: model });
         } else {
             let modelsYears = await searchModelYear(modelYear);          
-            let label = await db.selectLabelYear(modelYear.year);
-
         
             for(let i=0; i<modelsYears.models.length; i++) {
-                let idModel = await db.selectIdModel(modelsYears.models[i].Value);
-                await db.insertYearModelDb(modelYear.year, label[0].Label, idModel[0].id_Value);
+                await db.insertYearModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, idValue[0].id_Value);
             }
     
             return res.send(modelsYears);
         }
     }
-
 })
 
 app.post('/fipe', async function(req, res) {
@@ -211,7 +208,7 @@ const searchBrand = async (period) => {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/#carro');
-    await page.select('#selectMarcacarro', period.period);
+    await page.select('#selectTabelaReferenciacarro', period.period);
     
     const brands = await page.evaluate(resp => {
         return [...document.querySelectorAll('#selectMarcacarro option')].map(resp => { 
@@ -225,17 +222,18 @@ const searchBrand = async (period) => {
     //Delete first item array
     brands.shift();
 
-    await browser.close();
+    //await browser.close();
 
     return brands;
 }
 
-const searchModel = async (brand) => {
+const searchModel = async (payload) => {
 
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto('https://veiculos.fipe.org.br/#carro');
-    await page.select('#selectMarcacarro', brand.brand);
+    await page.select('#selectTabelaReferenciacarro', payload.period);
+    await page.select('#selectMarcacarro', payload.brand);
 
     const models = await page.evaluate(resp => {
         return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
@@ -273,38 +271,43 @@ const searchModelYear = async (modelsYears) => {
     if(modelsYears.cod == 1) {
         await page.select('#selectMarcacarro', modelsYears.brand); 
         await page.select('#selectAnoModelocarro', modelsYears.model);
+
+        const years = await page.evaluate(resp => {
+            return [...document.querySelectorAll('#selectAnocarro option')].map(resp => { 
+                const label = resp.textContent.split('|')[0].trim();
+                const value = resp.value.split('|')[0].trim();
+            
+                return { "Label": `${label}`, "Value": `${value}`};
+            });
+        });
+
+        years.shift();
+
+        await browser.close();
+
+        return { "years": years };
     }
+
     if(modelsYears.cod == 2) {
         await page.select('#selectMarcacarro', modelsYears.brand); 
         await page.select('#selectAnocarro', modelsYears.year);
+
+        const models = await page.evaluate(resp => {
+            return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
+                const label = resp.textContent.split('|')[0].trim();
+                const value = resp.value.split('|')[0].trim();
+            
+                return { "Label": `${label}`, "Value": `${value}`};
+            });
+        });
+        
+        //Delete first item array
+        models.shift();
+
+        await browser.close();
+
+        return { "models": models };
     }
-
-    const models = await page.evaluate(resp => {
-        return [...document.querySelectorAll('#selectAnoModelocarro option')].map(resp => { 
-            const label = resp.textContent.split('|')[0].trim();
-            const value = resp.value.split('|')[0].trim();
-        
-            return { "Label": `${label}`, "Value": `${value}`};
-        });
-    });
-    
-    //Delete first item array
-    models.shift();
-
-    const years = await page.evaluate(resp => {
-        return [...document.querySelectorAll('#selectAnocarro option')].map(resp => { 
-            const label = resp.textContent.split('|')[0].trim();
-            const value = resp.value.split('|')[0].trim();
-        
-            return { "Label": `${label}`, "Value": `${value}`};
-        });
-    });
-
-    years.shift();
-
-    await browser.close();
-
-    return { "models": models, "years": years };
 }
 
 const json = { 
