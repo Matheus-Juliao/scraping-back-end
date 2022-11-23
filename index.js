@@ -48,20 +48,20 @@ app.post('/period', async function(req, res) {
 app.post('/brand', async function(req, res) {
     let payload = req.body;
     let id_Value = await db.selectIdBrand(payload.brand, payload.period);
-    let model = await db.selectModel(id_Value[0].id_Value);
+    let model = await db.selectModel(id_Value[0][0].id_Value);
 
     if(model.length > 0){
-        let year = await db.selectYear(id_Value[0].id_Value);
+        let year = await db.selectYear(id_Value[0][0].id_Value);
         return res.send({ models: model, years: year });
     } else {
         let modelsYears = await searchModel(payload);
 
         for(let i=0; i<modelsYears.models.length; i++) {
-            await db.insertModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, id_Value[0].id_Value);
+            await db.insertModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, id_Value[0][0].id_Value);
         }
 
         for(let i=0; i<modelsYears.years.length; i++) {
-            await db.insertYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, id_Value[0].id_Value);
+            await db.insertYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, id_Value[0][0].id_Value);
         }
 
         return res.send(modelsYears);
@@ -74,8 +74,8 @@ app.post('/modelyear', async function(req, res) {
     //model
     if(modelYear.cod == 1) {
         let id = await db.selectIdBrand(modelYear.brand, modelYear.period);
-        let idValue = await db.selectIdModel(modelYear.model, id[0].id_Value);
-        let year = await db.selectModelYear(idValue[0].id_Value);
+        let id_Value = await db.selectIdModel(modelYear.model, id[0][0].id_Value);
+        let year = await db.selectModelYear(id_Value[0][0].id_Value);
         
         if(year.length > 0) {
             return res.send({ years: year });
@@ -83,7 +83,7 @@ app.post('/modelyear', async function(req, res) {
             let modelsYears = await searchModelYear(modelYear);
             
             for(let i=0; i<modelsYears.years.length; i++) {
-                await db.insertModelYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, idValue[0].id_Value);
+                await db.insertModelYearDb(modelsYears.years[i].Value, modelsYears.years[i].Label, id_Value[0][0].id_Value);
             }
     
             return res.send(modelsYears);
@@ -92,8 +92,8 @@ app.post('/modelyear', async function(req, res) {
     //year
     if(modelYear.cod == 2) {
         let id = await db.selectIdBrand(modelYear.brand, modelYear.period);
-        let idValue = await db.selectIdYear(modelYear.year, id[0].id_Value);
-        let model = await db.selectYearModel(idValue[0].id_Value);
+        let id_Value = await db.selectIdYear(modelYear.year, id[0][0].id_Value);
+        let model = await db.selectYearModel(id_Value[0][0].id_Value);
         
         if(model.length > 0){
             return res.send({ models: model });
@@ -101,7 +101,7 @@ app.post('/modelyear', async function(req, res) {
             let modelsYears = await searchModelYear(modelYear);          
         
             for(let i=0; i<modelsYears.models.length; i++) {
-                await db.insertYearModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, idValue[0].id_Value);
+                await db.insertYearModelDb(modelsYears.models[i].Value, modelsYears.models[i].Label, id_Value[0][0].id_Value);
             }
     
             return res.send(modelsYears);

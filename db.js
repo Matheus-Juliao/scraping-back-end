@@ -85,7 +85,7 @@ async function selectBrand(period){
 
 async function selectIdBrand(Value, period){
     const conn = await con.connect();
-    const sql = 'SELECT id_Value FROM brands WHERE Value = ? AND fk_id_Value = ?'
+    const sql = 'CALL brand(?, ?)';
     const values = [Value, period];
 
     const [resp] = await conn.query(sql, values)
@@ -105,7 +105,7 @@ async function selectModel(id_Value){
 
 async function selectIdModel(Value, fk_id_Value){
     const conn = await con.connect();
-    const sql = 'SELECT id_Value FROM models WHERE Value = ? AND fk_id_Value = ?';
+    const sql = 'CALL model(?, ?)';
     const values = [Value, fk_id_Value];
 
     const [resp] = await conn.query(sql, values)
@@ -125,7 +125,7 @@ async function selectYear(brand){
 
 async function selectIdYear(Value, fk_id_Value){
     const conn = await con.connect();
-    const sql = 'SELECT id_Value FROM years WHERE Value = ? AND fk_id_Value = ?';
+    const sql = 'CALL year(?, ?)';
     const values = [Value, fk_id_Value];
 
     const [resp] = await conn.query(sql, values)
