@@ -29,6 +29,20 @@ async function insertPeriodDb(Codigo, Mes, seq){
     return conn.query(sql, values);
 }
 
+async function insertPeriodDbAux(Codigo, Mes, seq){
+    const conn = await con.connect();
+    const sql = 'INSERT INTO period_aux (Codigo, Mes, seq) VALUES (?,?,?)';
+    const values = [Codigo, Mes, seq];
+    return conn.query(sql, values);
+}
+
+async function deletePeriodDbAux(){
+    const conn = await con.connect();
+    const sql = 'DELETE FROM period_aux';
+
+    return conn.query(sql);
+}
+
 async function insertBrandDb(Value, Label, period){
     const conn = await con.connect();
     const sql = 'INSERT INTO brands (Value, Label, fk_id_Value) VALUES (?,?,?)';
@@ -174,10 +188,10 @@ async function selectQueryAndVehicleTable(id_cod_vehicle_table){
     return resp;
 }
 
-async function selectQueryAndVehicleTablePrint(period){
+async function selectQueryAndVehicleTablePrint(brand, model, year, period){
     const conn = await con.connect();
-    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price FROM vehicle_table INNER JOIN cod_vehicle_table ON cod_vehicle_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table INNER JOIN query_table ON query_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table WHERE cod_vehicle_table.cod_reference_month = ?';
-    const values = [period];
+    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price FROM vehicle_table INNER JOIN cod_vehicle_table ON cod_vehicle_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table INNER JOIN query_table ON query_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table WHERE cod_vehicle_table.cod_brand = ? AND cod_vehicle_table.cod_model = ? AND cod_vehicle_table.cod_model_year = ? AND cod_vehicle_table.cod_reference_month = ?';
+    const values = [brand, model, year, period];
 
     const [resp] = await conn.query(sql, values)
 
@@ -186,10 +200,9 @@ async function selectQueryAndVehicleTablePrint(period){
 
 async function selectPeriodLimit(){
     const conn = await con.connect();
-    const sql = 'SELECT Codigo FROM period LIMIT ?';
-    const values = [1];
+    const sql = 'SELECT selectPeriodLimit() AS Codigo';
 
-    const [resp] = await conn.query(sql, values)
+    const [resp] = await conn.query(sql)
 
     return resp;
 }
@@ -200,6 +213,8 @@ module.exports = {
     insertQueryTable,
     insertCodVehicleTable,
     insertPeriodDb,
+    insertPeriodDbAux,
+    deletePeriodDbAux,
     insertBrandDb,
     insertModelDb,
     insertYearDb,

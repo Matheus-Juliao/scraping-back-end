@@ -5,6 +5,7 @@ const puppeteer = require('puppeteer');
 const app = express();
 const db = require("./db");
 const period = require("./period");
+const periodAux = require("./periodAux");
 
 //Register period actual and models period if not exist data in table
 (async () =>{
@@ -15,6 +16,19 @@ const period = require("./period");
         console.log('Insered period')
     }
 })();
+
+//Check a new period
+async function verificationPeriod() {
+    await db.deletePeriodDbAux();
+    await periodAux.insertPeriod();
+    setTimeout(() => {
+        console.log('Verification Period Loop')
+        verificationPeriod() 
+      }, (1000 * 86400)); //call function every 24 hours
+      //1 day have 86400 seconds
+}
+
+verificationPeriod();
 
 //Config port
 const port = process.env.PORT || 3000;
@@ -182,7 +196,7 @@ app.post('/print', async function(req, res) {
     let i = 0;
     
     for(let period of payload.period) {
-        const query = await db.selectQueryAndVehicleTablePrint(period)
+        const query = await db.selectQueryAndVehicleTablePrint(payload.brand, payload.model, payload.year, period);
         let result = new Object();
 
         result.mesdereferencia = query[0]?.reference_month;
