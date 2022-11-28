@@ -129,7 +129,6 @@ app.post('/fipe', async function(req, res) {
     let i = 0;
     let previousPeriod = '';
     
-    
     for(let period of payload.period) {
         const con = await db.confirmRegistration(payload, period);
 
@@ -147,8 +146,9 @@ app.post('/fipe', async function(req, res) {
             result.modelo = query[0]?.model;
             result.anoModelo = query[0]?.model_year;
             result.autenticacao = query[0]?.authentication;
-            result.dataDaConsulta = query[0]?.consultation_date;
-            result.precoMedio = query[0]?.average_price;
+            result.dataDaConsulta = dateNow();
+            result.precoMedio = parseFloat(query[0]?.average_price);
+            result.precoMedio = result.precoMedio.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
 
             results.push(result);
             i++;
@@ -159,6 +159,7 @@ app.post('/fipe', async function(req, res) {
 
             let resp = await fipe(payload, period);
             let result = new Object();
+            let precoAux = "";
 
             if(resp.mesdereferencia == '') {
                 break;
@@ -170,10 +171,12 @@ app.post('/fipe', async function(req, res) {
                 result.modelo = resp.modelo;
                 result.anoModelo = resp.anoModelo;
                 result.autenticacao = resp.autenticacao;
-                result.dataDaConsulta = resp.dataDaConsulta;
-                result.precoMedio = resp.precoMedio;
-        
-                results.push(result);
+                result.dataDaConsulta = dateNow();
+                precoAux = resp.precoMedio.replace("R$ ", "");
+                precoAux = precoAux.replaceAll(".", "");
+                precoAux = precoAux.replace(",", ".")
+                result.precoMedio = parseFloat(precoAux);
+                 
                 i++;
         
                 const key = gerarPassword();
@@ -181,6 +184,9 @@ app.post('/fipe', async function(req, res) {
                 await db.insertVehicleTable(result, key);
                 await db.insertQueryTable(result, key);
                 await db.insertCodVehicleTable(payload, period, key);
+
+                result.precoMedio = result.precoMedio.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+                results.push(result);
 
                 previousPeriod = resp.mesdereferencia;
             }
@@ -193,7 +199,6 @@ app.post('/fipe', async function(req, res) {
 app.post('/print', async function(req, res) {
     let payload = req.body;
     let results = [];
-    let i = 0;
     
     for(let period of payload.period) {
         const query = await db.selectQueryAndVehicleTablePrint(payload.brand, payload.model, payload.year, period);
@@ -205,16 +210,44 @@ app.post('/print', async function(req, res) {
         result.modelo = query[0]?.model;
         result.anoModelo = query[0]?.model_year;
         result.autenticacao = query[0]?.authentication;
-        result.dataDaConsulta = query[0]?.consultation_date;
-        result.precoMedio = query[0]?.average_price;
+        //result.dataDaConsulta = dateNow();
+        result.precoMedio =  parseFloat(query[0]?.average_price);
+        result.precoMedio = result.precoMedio.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
 
         results.push(result);
-        i++;
     }
 
     return res.send(results);
 })
 
+app.post('/moreExpensive', async function(_req, res) {
+    let resp = await db.selectMoreExpensive();
+    resp[0].consultationDate = dateNow();
+    resp[0].average_price  = parseFloat(resp[0].average_price);
+    resp[0].average_price = resp[0].average_price.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+
+    return res.send(resp);
+})
+
+app.post('/cheapest', async function(_req, res) {
+    let resp = await db.selectCheapest();
+    return res.send(resp);
+})
+
+app.post('/lessPowerfulCar', async function(_req, res) {
+    let resp = await db.selectLessPowerfulCar();
+    return res.send(resp);
+})
+
+app.post('/moreEconomical', async function(_req, res) {
+    let resp = await db.selectMoreEconomical();
+    return res.send(resp);
+})
+
+app.post('/lessEconomical', async function(_req, res) {
+    let resp = await db.selectLessEconomical();
+    return res.send(resp);
+})
 
 //Functions
 const searchBrand = async (period) => {
@@ -405,6 +438,15 @@ const tofixedJson = async (results) => {
     }
 
     return json;
+}
+
+const dateNow = () => {
+    const date = new Date;
+
+    const days = new Array ("domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado");
+    const months = new Array ("janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro");
+
+    return days[date.getDay()] + ", " + date.getDate() + " de " + months[date.getMonth()] + " de " + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
 }
 
 function gerarPassword() {

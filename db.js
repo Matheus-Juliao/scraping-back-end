@@ -9,8 +9,8 @@ async function insertVehicleTable(results, key){
 
 async function insertQueryTable(results, key){
     const conn = await con.connect();
-    const sql = 'INSERT INTO query_table (fipe_code, reference_month, authentication, consultation_date, average_price, fk_id_vehicle_table) VALUES (?,?,?,?,?,?)';
-    const values = [results.codigoFipe, results.mesdereferencia, results.autenticacao, results.dataDaConsulta, results.precoMedio, key];
+    const sql = 'INSERT INTO query_table (fipe_code, reference_month, authentication, average_price, fk_id_vehicle_table) VALUES (?,?,?,?,?)';
+    const values = [results.codigoFipe, results.mesdereferencia, results.autenticacao, results.precoMedio, key];
 
     return conn.query(sql, values);
 }
@@ -180,7 +180,7 @@ async function selectYearModel(fk_id_Value){
 
 async function selectQueryAndVehicleTable(id_cod_vehicle_table){
     const conn = await con.connect();
-    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price  FROM vehicle_table INNER JOIN query_table ON fk_id_vehicle_table = id_vehicle_table WHERE id_vehicle_table = ?';
+    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, average_price  FROM vehicle_table INNER JOIN query_table ON fk_id_vehicle_table = id_vehicle_table WHERE id_vehicle_table = ?';
     const values = [id_cod_vehicle_table];
 
     const [resp] = await conn.query(sql, values)
@@ -190,7 +190,7 @@ async function selectQueryAndVehicleTable(id_cod_vehicle_table){
 
 async function selectQueryAndVehicleTablePrint(brand, model, year, period){
     const conn = await con.connect();
-    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, consultation_date, average_price FROM vehicle_table INNER JOIN cod_vehicle_table ON cod_vehicle_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table INNER JOIN query_table ON query_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table WHERE cod_vehicle_table.cod_brand = ? AND cod_vehicle_table.cod_model = ? AND cod_vehicle_table.cod_model_year = ? AND cod_vehicle_table.cod_reference_month = ?';
+    const sql = 'SELECT reference_month, fipe_code, brand, model, model_year, authentication, average_price FROM vehicle_table INNER JOIN cod_vehicle_table ON cod_vehicle_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table INNER JOIN query_table ON query_table.fk_id_vehicle_table = vehicle_table.id_vehicle_table WHERE cod_vehicle_table.cod_brand = ? AND cod_vehicle_table.cod_model = ? AND cod_vehicle_table.cod_model_year = ? AND cod_vehicle_table.cod_reference_month = ?';
     const values = [brand, model, year, period];
 
     const [resp] = await conn.query(sql, values)
@@ -201,6 +201,51 @@ async function selectQueryAndVehicleTablePrint(brand, model, year, period){
 async function selectPeriodLimit(){
     const conn = await con.connect();
     const sql = 'SELECT selectPeriodLimit() AS Codigo';
+
+    const [resp] = await conn.query(sql)
+
+    return resp;
+}
+
+async function selectMoreExpensive(){
+    const conn = await con.connect();
+    const sql = 'SELECT * FROM mostExpensiveCarInDatabase';
+
+    const [resp] = await conn.query(sql)
+
+    return resp;
+}
+
+async function selectCheapest(){
+    const conn = await con.connect();
+    const sql = 'SELECT * FROM cheapestCarInDatabase';
+
+    const [resp] = await conn.query(sql)
+
+    return resp;
+}
+
+async function selectLessPowerfulCar(){
+    const conn = await con.connect();
+    const sql = 'SELECT * FROM lessPowerfulCar';
+
+    const [resp] = await conn.query(sql)
+
+    return resp;
+}
+
+async function selectMoreEconomical(){
+    const conn = await con.connect();
+    const sql = 'SELECT * FROM moreEconomical';
+
+    const [resp] = await conn.query(sql)
+
+    return resp;
+}
+
+async function selectLessEconomical(){
+    const conn = await con.connect();
+    const sql = 'SELECT * FROM lessEconomical';
 
     const [resp] = await conn.query(sql)
 
@@ -232,5 +277,10 @@ module.exports = {
     selectYearModel,
     selectQueryAndVehicleTable,
     selectQueryAndVehicleTablePrint,
-    selectPeriodLimit
+    selectPeriodLimit,
+    selectMoreExpensive,
+    selectCheapest,
+    selectLessPowerfulCar,
+    selectMoreEconomical,
+    selectLessEconomical
 };
