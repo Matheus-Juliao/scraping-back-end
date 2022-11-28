@@ -231,21 +231,37 @@ app.post('/moreExpensive', async function(_req, res) {
 
 app.post('/cheapest', async function(_req, res) {
     let resp = await db.selectCheapest();
+    resp[0].consultationDate = dateNow();
+    resp[0].average_price  = parseFloat(resp[0].average_price);
+    resp[0].average_price = resp[0].average_price.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+
     return res.send(resp);
 })
 
-app.post('/lessPowerfulCar', async function(_req, res) {
+app.post('/lessPowerful', async function(_req, res) {
     let resp = await db.selectLessPowerfulCar();
+    resp[0].consultationDate = dateNow();
+    resp[0].average_price  = parseFloat(resp[0].average_price);
+    resp[0].average_price = resp[0].average_price.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+
     return res.send(resp);
 })
 
 app.post('/moreEconomical', async function(_req, res) {
     let resp = await db.selectMoreEconomical();
+    resp[0].consultationDate = dateNow();
+    resp[0].average_price  = parseFloat(resp[0].average_price);
+    resp[0].average_price = resp[0].average_price.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+
     return res.send(resp);
 })
 
 app.post('/lessEconomical', async function(_req, res) {
     let resp = await db.selectLessEconomical();
+    resp[0].consultationDate = dateNow();
+    resp[0].average_price  = parseFloat(resp[0].average_price);
+    resp[0].average_price = resp[0].average_price.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
+    
     return res.send(resp);
 })
 
