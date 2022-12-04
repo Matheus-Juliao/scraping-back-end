@@ -210,7 +210,6 @@ app.post('/print', async function(req, res) {
         result.modelo = query[0]?.model;
         result.anoModelo = query[0]?.model_year;
         result.autenticacao = query[0]?.authentication;
-        //result.dataDaConsulta = dateNow();
         result.precoMedio =  parseFloat(query[0]?.average_price);
         result.precoMedio = result.precoMedio.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'});
 
@@ -462,7 +461,12 @@ const dateNow = () => {
     const days = new Array ("domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado");
     const months = new Array ("janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro");
 
-    return days[date.getDay()] + ", " + date.getDate() + " de " + months[date.getMonth()] + " de " + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
+
+
+    let minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()
+    let hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours()
+
+    return days[date.getDay()] + ", " + date.getDate() + " de " + months[date.getMonth()] + " de " + date.getFullYear() + " " + hours + ":" + minutes;
 }
 
 function gerarPassword() {
