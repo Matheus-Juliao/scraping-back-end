@@ -24,8 +24,8 @@ async function verificationPeriod() {
     setTimeout(() => {
         console.log('Verification Period Loop')
         verificationPeriod() 
-      }, (1000 * 86400)); //call function every 24 hours
-      //1 day have 86400 seconds
+      }, (1000 * 1800)); //call function every 30 minutes
+      //1 day have 86400 seconds (1000 * 86400)
 }
 
 verificationPeriod();
